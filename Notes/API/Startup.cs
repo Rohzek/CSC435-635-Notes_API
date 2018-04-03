@@ -27,6 +27,7 @@ namespace API
             if (File.Exists(Settings.GetFileName()))
             {
                 Settings.Load();
+                Console.WriteLine(Settings.Connection);
             }
             else
             {
