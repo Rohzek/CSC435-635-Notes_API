@@ -23,7 +23,7 @@ namespace API
         {
             Configuration = configuration;
 
-
+            // Adds our connection information
             if (File.Exists(Settings.GetFileName()))
             {
                 Settings.Load();
@@ -41,7 +41,15 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
+            services.AddCors(options => 
+            {
+                options.AddPolicy("AllowAllOrigins", builder => builder.AllowAnyOrigin());
+                options.AddPolicy("AllowAllHeaders", builder => builder.AllowAnyHeader());
+                options.AddPolicy("AllowAllMethods", builder => builder.AllowAnyMethod());
+                options.AddPolicy("AllowCredentials", builder => builder.AllowCredentials());
+                options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+            });
+
             services.AddMvc();
 
             services.Configure<MvcOptions>(options =>
@@ -62,6 +70,7 @@ namespace API
                                           .AllowAnyHeader()
                                           .AllowAnyMethod()
                                           .AllowCredentials());
+            app.UseCors("CorsPolicy");
             app.UseMvc();
         }
     }

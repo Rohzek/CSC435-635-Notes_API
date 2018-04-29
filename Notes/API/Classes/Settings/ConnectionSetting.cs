@@ -1,5 +1,8 @@
 ﻿namespace API.Classes.Settings
 {
+    /**
+     * Container for settings required to connect to database
+     */
     public class ConnectionSetting
     {
         public string Ip { get; set; }

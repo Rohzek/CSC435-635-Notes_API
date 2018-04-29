@@ -78,17 +78,9 @@ namespace API.Scaffolding
                     .HasColumnName("userid")
                     .HasColumnType("int(10)");
 
-                entity.HasOne(d => d.Category)
-                    .WithMany(p => p.Notes)
-                    .HasForeignKey(d => d.Categoryid)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("category_fk");
+                entity.HasOne(d => d.Category);
 
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Notes)
-                    .HasForeignKey(d => d.Userid)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("user_fk");
+                entity.HasOne(d => d.User);
             });
 
             modelBuilder.Entity<User>(entity =>

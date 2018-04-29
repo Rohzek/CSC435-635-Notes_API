@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace API.Scaffolding
 {
+    /**
+     * Created using Database-First EntityFramework scaffolding.
+     */
     public partial class Notes
     {
         public int Id { get; set; }

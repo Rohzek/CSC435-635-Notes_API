@@ -1,12 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Web.Http.Cors;
 using API.Scaffolding;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
+/**
+ * Controller for Notes
+ */
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]"), EnableCors(origins: "*", headers: "*", methods: "*")]
     public class NotesController : Controller
     {
         DatabaseContext db = new DatabaseContext();
@@ -15,25 +20,14 @@ namespace API.Controllers
         [HttpGet]
         public List<Notes> Query()
         {
-            return db.Notes.Where(n => n.IsDeleted.Equals(false)).ToList();
+            return db.Notes.Include(c => c.Category).Include(u => u.User).Where(n => n.IsDeleted.Equals(false)).ToList();
         }
 
         // GET api/notes/1
         [HttpGet("{id}")]
-        public string Query(int id)
+        public Notes Query(int id)
         {
-
-            string result = "Error: No note found";
-
-            // If the ID matches, and it isn't deleted
-            var notes = db.Notes.Where(n => n.Id.Equals(id) && n.IsDeleted.Equals(false));
-
-            foreach (var note in notes)
-            {
-                result = $"{note.Title}:\n{note.Note}";
-            }
-
-            return result;
+            return db.Notes.Where(n => n.Id.Equals(id) && n.IsDeleted.Equals(false)).FirstOrDefault();
         }
 
         /*
@@ -70,10 +64,12 @@ namespace API.Controllers
             var input = JsonConvert.DeserializeObject<Notes>(json);
 
             db.Notes.Add(input);
+
+            db.SaveChanges();
         }
 
         /*
-         * UT api/notes/1
+         * PUT api/notes/1
          * 
          * Example Input Json?:
          * 
@@ -106,9 +102,10 @@ namespace API.Controllers
             var input = JsonConvert.DeserializeObject<Notes>(json);
 
             // If the ID matches, and it isn't deleted
-            var notes = db.Notes.Where(n => n.Id.Equals(id) && n.IsDeleted.Equals(false));
+            var note = db.Notes.Where(n => n.Id.Equals(id) && n.IsDeleted.Equals(false)).FirstOrDefault();
 
-            foreach (var note in notes)
+            // Update record
+            if (note != null)
             {
                 note.Id = input.Id;
                 note.Title = input.Title;
@@ -119,6 +116,12 @@ namespace API.Controllers
                 note.Category = input.Category;
                 note.User = input.User;
             }
+            else // Add record
+            {
+                db.Notes.Add(input);
+            }
+
+            db.SaveChanges();
         }
 
         // DELETE api/notes/1
@@ -132,6 +135,8 @@ namespace API.Controllers
                 // I'm guessing we're supposed to keep the record?
                 note.IsDeleted = true;
             }
+
+            db.SaveChanges();
         }
     }
 }

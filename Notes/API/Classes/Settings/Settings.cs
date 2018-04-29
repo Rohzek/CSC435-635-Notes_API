@@ -3,6 +3,9 @@ using System.IO;
 
 namespace API.Classes.Settings
 {
+    /**
+     * Holds all information required to connect to database, and to read the JSON formatted files that hold the information.
+     */
     public class Settings
     {
         public static bool IsLoaded { get; set; }
