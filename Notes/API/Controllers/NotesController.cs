@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Web.Http.Cors;
+﻿using API.Classes.Email;
 using API.Scaffolding;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http.Cors;
 
 /**
  * Controller for Notes
@@ -15,19 +17,32 @@ namespace API.Controllers
     public class NotesController : Controller
     {
         DatabaseContext db = new DatabaseContext();
+        SendEmails email = new SendEmails();
 
         // GET api/notes
         [HttpGet]
         public List<Notes> Query()
         {
-            return db.Notes.Include(c => c.Category).Include(u => u.User).Where(n => n.IsDeleted.Equals(false)).ToList();
+            var remoteIpAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress;
+
+            email.SendMessage("Somebody just called api/notes with a GET header", "The call was from: " + remoteIpAddress);
+
+            var notes = db.Notes.Include(c => c.Category).Include(u => u.User).Where(n => n.IsDeleted.Equals(false)).ToList();
+
+            return notes;
         }
 
         // GET api/notes/1
         [HttpGet("{id}")]
         public Notes Query(int id)
         {
-            return db.Notes.Where(n => n.Id.Equals(id) && n.IsDeleted.Equals(false)).FirstOrDefault();
+            var remoteIpAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress;
+
+            email.SendMessage("Somebody just called api/notes with a GET header", "The call was for note: " + id + " from: " + remoteIpAddress);
+
+            var note = db.Notes.Include(c => c.Category).Include(u => u.User).Where(n => n.IsDeleted.Equals(false) && n.Id == id).FirstOrDefault();
+            
+            return note;
         }
 
         /*
@@ -59,11 +74,28 @@ namespace API.Controllers
          * }
          */
         [HttpPost]
-        public void Add([FromBody]string json)
+        public void Add([FromBody]Notes json)
         {
-            var input = JsonConvert.DeserializeObject<Notes>(json);
+            var remoteIpAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress;
 
-            db.Notes.Add(input);
+            email.SendMessage("Somebody just called api/notes with a POST header", "The call was:\n\n" + JsonConvert.SerializeObject(json, Formatting.Indented) + 
+                                                                                                                                    "\n\nfrom: " + remoteIpAddress);
+
+            var cat = db.Category.Where(c => c.Id.Equals(json.Categoryid)).FirstOrDefault();
+            var user = db.User.Where(u => u.Id.Equals(json.Userid)).FirstOrDefault();
+
+            if (cat != null)
+            {
+                json.Category = cat;
+            }
+            if (user != null)
+            {
+                json.User = user;
+            }
+
+            json.IsDeleted = false;
+
+            db.Notes.Add(json);
 
             db.SaveChanges();
         }
@@ -97,29 +129,29 @@ namespace API.Controllers
          * }
          */
         [HttpPut("{id}")]
-        public void Update(int id, [FromBody]string json)
+        public void Update(int id, [FromBody]Notes json)
         {
-            var input = JsonConvert.DeserializeObject<Notes>(json);
+            var remoteIpAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress;
 
             // If the ID matches, and it isn't deleted
-            var note = db.Notes.Where(n => n.Id.Equals(id) && n.IsDeleted.Equals(false)).FirstOrDefault();
+            var note = db.Notes.Include(c => c.Category).Include(u => u.User).Where(n => n.IsDeleted.Equals(false) && n.Id == id).FirstOrDefault();
 
-            // Update record
-            if (note != null)
-            {
-                note.Id = input.Id;
-                note.Title = input.Title;
-                note.Note = input.Note;
-                note.CreatedOn = input.CreatedOn;
-                note.Categoryid = input.Categoryid;
-                note.Userid = input.Userid;
-                note.Category = input.Category;
-                note.User = input.User;
-            }
-            else // Add record
-            {
-                db.Notes.Add(input);
-            }
+            email.SendMessage("Somebody just called api/notes with a PUT header", "The call was to update \n\n" + JsonConvert.SerializeObject(note, Formatting.Indented) +
+                "\n\nwith:\n\n" + JsonConvert.SerializeObject(json, Formatting.Indented) + "\n\nCall came from: " + remoteIpAddress);
+
+            var cat = db.Category.Where(c => c.Id.Equals(json.Categoryid)).FirstOrDefault();
+            var user = db.User.Where(u => u.Id.Equals(json.Userid)).FirstOrDefault();
+
+            // No need to affect the id
+            //note.Id = json.Id;
+            note.Title = json.Title;
+            note.Note = json.Note;
+            // You can't just change the creation date
+            //note.CreatedOn = json.CreatedOn;
+            note.Categoryid = json.Categoryid;
+            note.Userid = json.Userid;
+            note.Category = cat;
+            note.User = user;
 
             db.SaveChanges();
         }
@@ -128,13 +160,18 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            var notes = db.Notes.Where(n => n.Id.Equals(id));
+            var remoteIpAddress = HttpContext.Features.Get<IHttpConnectionFeature>()?.RemoteIpAddress;
 
-            foreach (var note in notes)
-            {
-                // I'm guessing we're supposed to keep the record?
-                note.IsDeleted = true;
-            }
+            var note = db.Notes.Where(n => n.Id.Equals(id)).FirstOrDefault();
+
+            email.SendMessage("Somebody just called api/notes with a DELETE header", "The call was to delete:\n\n" + JsonConvert.SerializeObject(note, Formatting.Indented) +
+                                                                                                                                  "\n\nCall came from: " + remoteIpAddress);
+            /**
+             * Keeping the record by switching "isDeleted" to true, caused a lot of headache.
+             * We're just going to actually delete it, instead.
+             */
+            //note.IsDeleted = true;
+            db.Notes.Remove(note);
 
             db.SaveChanges();
         }

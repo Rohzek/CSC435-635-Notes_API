@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using API.Classes.Settings;
-using API.Scaffolding;
+﻿using API.Classes.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using System;
+using System.IO;
 
 namespace API
 {
@@ -47,7 +40,6 @@ namespace API
                 options.AddPolicy("AllowAllHeaders", builder => builder.AllowAnyHeader());
                 options.AddPolicy("AllowAllMethods", builder => builder.AllowAnyMethod());
                 options.AddPolicy("AllowCredentials", builder => builder.AllowCredentials());
-                options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             });
 
             services.AddMvc();
@@ -70,7 +62,6 @@ namespace API
                                           .AllowAnyHeader()
                                           .AllowAnyMethod()
                                           .AllowCredentials());
-            app.UseCors("CorsPolicy");
             app.UseMvc();
         }
     }

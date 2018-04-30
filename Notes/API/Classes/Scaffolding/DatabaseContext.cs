@@ -1,12 +1,12 @@
 ﻿using API.Classes.Settings;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace API.Scaffolding
 {
     /**
      * Auto generated from a Database First approach using the following command in the Nuget PMC:
      * Scaffold-DbContext {connectionString} Pomelo.EntityFrameworkCore.MySql -OutputDir Scaffolding -f
+     * Had to be modified to remove infinite loops, and incorrect data-type assignment
      */
     public partial class DatabaseContext : DbContext
     {

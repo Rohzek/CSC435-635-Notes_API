@@ -10,6 +10,8 @@
         public string User { get; set; }
         public string Password { get; set; }
         public string Database { get; set; }
+        public string Account { get; set; }
+        public string Creds { get; set; }
 
         public ConnectionSetting()
         {
@@ -18,6 +20,8 @@
             User = "root";
             Password = "password";
             Database = "name";
+            Account = "name@domain.ext";
+            Creds = "nopass";
         }
     }
 }

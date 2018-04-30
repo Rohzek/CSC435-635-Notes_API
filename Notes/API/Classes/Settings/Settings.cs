@@ -33,6 +33,16 @@ namespace API.Classes.Settings
             File.WriteAllText(_file, json);
         }
 
+        public static string getEmailAccount()
+        {
+            return _settings.Account;
+        }
+
+        public static string getEmailPassword()
+        {
+            return _settings.Creds;
+        }
+
         public static string GetFileName()
         {
             return _file;

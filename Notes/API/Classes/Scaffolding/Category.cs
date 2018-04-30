@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace API.Scaffolding
+﻿namespace API.Scaffolding
 {
     /**
      * Created using Database-First EntityFramework scaffolding.
